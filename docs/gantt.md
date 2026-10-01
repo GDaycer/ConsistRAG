@@ -1,7 +1,7 @@
 # ConsistRAG — Schedule
 
 An indicative plan of the deliverables in `project_spec.md` §34 over the 12-week semester. Work runs from week 3 to
-week 11; week 12 is for the presentation. The detailed phase plan is in `design.md` §9. A rendered copy is in
+week 11. The detailed phase plan is in `design.md` §9. A rendered copy is in
 `img/gantt.png`.
 
 ```mermaid
@@ -24,9 +24,6 @@ gantt
     D8 Deployment                            :d8, 2024-03-04, 14d
     D9 Final technical report                :d9, 2024-01-22, 56d
     Project complete                         :milestone, fin, 2024-03-18, 0d
-
-    section Week 12
-    Presentation                             :p, 2024-03-18, 7d
 ```
 
 | Deliverable | Weeks |
@@ -40,4 +37,3 @@ gantt
 | D7 Evaluation framework | 9 |
 | D8 Deployment | 10–11 |
 | D9 Final technical report | 4–11 |
-| Presentation | 12 |
