@@ -15,7 +15,7 @@ new module. The decisions below are fixed; do not change them without asking.
 - **LLM:** local only, via Ollama, 7–8B instruct at 4-bit (generator Qwen2.5-7B-Instruct). No paid APIs. The judge is a
   different model family from the generator. All LLM calls go through the OpenAI-compatible client in `consistrag/llm/`.
 - **Hardware:** development and experiments on an RTX 4060 (8 GB) + Ryzen 5 5600, one LLM loaded at a time. The
-  distributed program must also run on Windows PCs **without an NVIDIA GPU** via the CPU profile (3B model, NLI base,
+  deployed system must also run **without an NVIDIA GPU** via the CPU profile (3B model, NLI base,
   no LLM step in the cascade). Profiles are config values; the code path is the same.
 - **No RAG frameworks:** no LangChain, LlamaIndex or Haystack. Own pipeline code on sentence-transformers,
   transformers, bm25s, pgvector, pydantic.
@@ -28,9 +28,9 @@ new module. The decisions below are fixed; do not change them without asking.
 - **Confidence:** consistency score and calibrated answer confidence are separate numbers. LLM token probabilities are
   not used as confidence.
 - **Backend/frontend:** FastAPI, Next.js.
-- **Deployment:** Docker Compose on Windows (Docker Desktop + WSL2); `start.bat` (CPU) and `start-gpu.bat`. A prebuilt
-  index (DB dump) is shipped as a GitHub Release; distribution machines never run ingestion. The goal is a working
-  program on ~20 machines from the README alone; outputs may differ slightly between machines.
+- **Deployment:** Docker Compose (`docker compose up` = CPU profile; add `docker-compose.gpu.yml` for GPU). The project
+  must be redeployable on a new machine from the README alone, either by re-ingesting or by restoring the released
+  database dump. Versions are pinned; outputs may differ slightly between machines.
 - **Ground truth:** every test item carries an evidence pointer and is verified by the team (`verified_by`).
 
 ## Structure
@@ -62,5 +62,5 @@ See `docs/design.md` §9 (phases, exit checks) and §9.1 (deliverable traceabili
 7. Resolution, abstention, generation with citation check, confidence (D5).
 8. API + UI (D6).
 9. Full evaluation, ablations, robustness, error analysis (D7).
-10. Deployment: prebuilt index release, README, acceptance test on a non-NVIDIA Windows PC (D8).
+10. Deployment: database dump release, README, redeployment test on a fresh machine (D8).
 11. Report (D9).

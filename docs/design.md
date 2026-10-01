@@ -15,11 +15,11 @@ and change only by agreement.
 | Language | English documents, questions and answers. | fixed |
 | Domain | Erasmus+ programme rules (EU, 2021–2027 programme, yearly versions), plus a synthetic fictional-university corpus. | fixed |
 | LLM | Local, via Ollama, 7–8B instruct model at 4-bit. No paid API anywhere. | fixed |
-| Hardware target | Development and experiments: RTX 4060 8 GB, Ryzen 5 5600. Distribution: any Windows 10/11 PC, **with or without an NVIDIA GPU** (CPU profile, §8.6). | fixed |
+| Hardware target | Development and experiments: RTX 4060 8 GB, Ryzen 5 5600. Deployment must also work without an NVIDIA GPU (CPU profile, §8.1). | fixed |
 | Framework | Own pipeline code on standard libraries. No LangChain / LlamaIndex / Haystack. | fixed |
 | Storage | PostgreSQL 16 + pgvector (documents, chunks, embeddings, claims, graph, eval runs). | fixed |
 | Backend / frontend | FastAPI / Next.js (React). | fixed |
-| Deployment | Docker Compose on Windows (Docker Desktop + WSL2). Goal: a working program on ~20 machines from one README, not identical outputs. Prebuilt index shipped; no machine re-ingests. | fixed |
+| Deployment | Docker Compose. Goal: redeployable on a new machine from the README alone; outputs may differ slightly. | fixed |
 | Ground truth | Built by Claude, verified by the team (§22 "manually verified"). | fixed |
 
 ---
@@ -499,40 +499,37 @@ clusters, and `trace_id`.
 
 ### 8.6 Deployment (Deliverable 8)
 
-Target: a team member or grader with a Windows 10/11 PC follows `README.md` and has the UI open in the browser, with no
-help. Outputs do not need to match ours exactly; the program needs to work.
+Goal: the finished project is **redeployable**. Anyone can clone the repository on a new machine, follow `README.md`,
+and have the full system running. Outputs may differ slightly from ours; the system must work.
 
-**Prerequisites:** Docker Desktop (WSL2 backend; virtualisation enabled in BIOS). NVIDIA GPU optional; with one, a recent
-driver is enough (Docker Desktop passes the GPU through WSL2). Minimum 8 GB RAM for the CPU profile, 16 GB recommended;
-about 15 GB free disk.
+**Prerequisites:** Docker with Compose (Docker Desktop on Windows/macOS, Docker Engine on Linux). An NVIDIA GPU is
+optional; about 15 GB free disk, 16 GB RAM recommended.
 
 **Services** (`docker-compose.yml`):
 
 | Service | Image | Notes |
 |---|---|---|
-| `db` | `pgvector/pgvector:pg16` | On first start restores the prebuilt index (see below). |
+| `db` | `pgvector/pgvector:pg16` | Schema created by Alembic migrations on start. |
 | `ollama` | `ollama/ollama` | Models pulled on first start by a one-shot `ollama-init` service. |
-| `api` | built from `backend/Dockerfile` | CPU PyTorch by default; build argument `TORCH=cuda` for the GPU profile. Small models (embedder, reranker, NLI) cached in a volume. |
+| `api` | built from `backend/Dockerfile` | CPU PyTorch by default; build argument `TORCH=cuda` for the GPU override. Small models (embedder, reranker, NLI) cached in a volume. |
 | `web` | built from `frontend/Dockerfile` | Next.js production build. |
 
-**Two ways to start:**
-- `start.bat` — CPU profile, works everywhere.
-- `start-gpu.bat` — adds `docker-compose.gpu.yml` (GPU access for `ollama` and `api`, GPU model profile).
+**Starting:**
+- `docker compose up` — CPU profile (3B model, §8.1), runs on any machine.
+- `docker compose -f docker-compose.yml -f docker-compose.gpu.yml up` — GPU profile.
 
-Both scripts check that Docker is running and print the UI address when ready.
+**Data:** a fresh deployment needs the ingested corpus. Two routes, both documented in the README:
+- `docker compose run api consistrag ingest` rebuilds everything from the manifests (fetch, chunk, embed, extract claims).
+  This takes a while on a GPU and hours on a CPU.
+- `docker compose run api consistrag restore` loads a database dump that we attach to a GitHub Release. The dump
+  contains only redistributable data (EU documents, the synthetic corpus); third-party pages appear only as extracted
+  claims and short quoted passages with links.
 
-**Prebuilt index:** ingestion (claim extraction with the LLM) takes hours on a CPU, so no distribution machine runs it.
-We ingest once on the RTX 4060, export a database dump (documents, chunks, embeddings, claims) and attach it to a GitHub
-Release. `db` downloads and restores it on first start. The dump contains only data we may redistribute (EU documents
-and the synthetic corpus); third-party pages are included only as extracted claims and short quoted passages with links.
-`make ingest` (or `ingest.bat`) is still available for anyone who wants to rebuild it.
+**Pinned versions:** Python dependencies from a lockfile, Docker base images by tag, model versions by HuggingFace
+revision and Ollama tag, so a redeployment months later gets the same components.
 
-**First run:** downloads Docker images, models (CPU profile ~3 GB, GPU profile ~6 GB) and the index dump; internet is
-needed once. An offline bundle (images saved with `docker save`, models and dump on a USB drive) is documented as a
-fallback.
-
-**Acceptance test:** before release, a fresh Windows machine **without** an NVIDIA GPU follows the README only, opens the
-UI and answers the four §37 demo questions. A second run on the RTX 4060 with `start-gpu.bat`.
+**Redeployment test:** before release, clone the repository on a machine that has never run the project, follow only the
+README (CPU profile, restore route), and answer the four §37 demo questions.
 
 ---
 
@@ -542,7 +539,7 @@ Ordered; each phase ends when its exit check passes. Deliverables D1–D9 are fr
 
 | # | Phase | Output | Exit check |
 |---|---|---|---|
-| 0 | Skeleton | Repo layout, Docker Compose (db, ollama, api, web stubs), CPU and GPU start scripts, CI | `start.bat` brings up all services on Windows; `pytest` green in CI |
+| 0 | Skeleton | Repo layout, Docker Compose (db, ollama, api, web stubs) with GPU override, CI | `docker compose up` brings up all services; `pytest` green in CI |
 | 1 | Literature and requirements (D1) | `docs/literature.md`, `docs/requirements.md` (functional and non-functional requirements, incl. latency and hardware), conflict taxonomy | Every §34 D1 topic covered; requirements reviewed by the team |
 | 2 | Baseline RAG + evaluation runner (D3, D7 start) | Ingestion, hybrid retrieval, rerank, B1/B2 generation with citations; `eval run` with retrieval and answer metrics | B1/B2 answer end to end on a seed synthetic corpus (first version of the generator); retrieval metrics computed |
 | 3 | Benchmark (D2) | Corpus R manifest + fetch, synthetic generator, 300 QA items, pair set, extraction gold, robustness sets, `benchmark_guide.md` | Team has verified every test item; κ on the 50-item overlap reported |
@@ -552,7 +549,7 @@ Ordered; each phase ends when its exit check passes. Deliverables D1–D9 are fr
 | 7 | Resolution and generation (D5 done) | Resolver, abstention, resolution brief, citation check, confidence | CR answers the four §37 demos correctly on the synthetic corpus |
 | 8 | API + UI (D6) | FastAPI endpoints, Next.js pages incl. evaluation dashboard | All four §37 demos shown in the UI |
 | 9 | Full evaluation (D7 done) | All systems and ablations on test, robustness, significance, calibration, cost, error analysis | All tables and figures regenerated by one script |
-| 10 | Deployment (D8) | Prebuilt index release, final start scripts, README install guide, offline bundle notes | Acceptance test (§8.6) passes on a non-NVIDIA Windows machine |
+| 10 | Deployment (D8) | Database dump release, README install guide, pinned versions | Redeployment test (§8.6) passes on a machine that never ran the project |
 | 11 | Report (D9) | 21 chapters per §34, figures from phase 9 | — |
 
 Docker Compose and CI exist from Phase 0 and are kept working in every phase, so Phase 10 is packaging and testing, not
@@ -569,7 +566,7 @@ a first attempt.
 | D5 Conflict resolution (source ranking, temporal, resolution, abstention) | 6–7 | 7 | Weight study, demo answers, abstention metrics |
 | D6 User interface | 8 | 8 | UI showing answer, evidence, conflicts, citations, confidence |
 | D7 Evaluation framework | 2–9 | 9 | `consistrag.eval`, results tables, dashboard |
-| D8 Deployment | 0–10 | 10 | Compose files, start scripts, README, acceptance-test record |
+| D8 Deployment | 0–10 | 10 | Compose files, README, redeployment-test record |
 | D9 Final report | 1–11 | 11 | `docs/report/` |
 
 ### 9.2 Grading weights (§36) by phase
@@ -607,9 +604,8 @@ Each reference is checked before it is cited:
 |---|---|
 | A 7B model extracts claims poorly | JSON schema, few-shot examples, deterministic normaliser, sentence-level fallback; measured in Phase 3 before building on it |
 | 8 GB VRAM | Only one LLM loaded at a time; NLI, embeddings and reranker are small; NLI drops to base size if needed |
-| Machines without an NVIDIA GPU are slow | CPU profile: 3B model, NLI base, no LLM step in the cascade; prebuilt index so nothing is ingested on CPU |
-| Docker Desktop problems on Windows (virtualisation off, WSL2 missing, WSL memory limit) | README troubleshooting section; start script checks Docker before starting; acceptance test on a clean machine |
-| Large first-run download | Sizes stated in README; offline bundle documented |
+| Machines without an NVIDIA GPU are slow | CPU profile: 3B model, NLI base, no LLM step in the cascade; database dump so ingestion is not needed on CPU |
+| Redeployment breaks over time (changed dependencies, models, pages) | Pinned versions; database dump release; redeployment test before release |
 | Slow queries | Claims stored at ingestion; candidate pairing (blocking); LLM classifier only for uncertain pairs; response cache |
 | Programme Guides are long PDFs with tables | Section-aware chunking; tables kept whole; spot-check extraction on the grant-rate sections |
 | Web pages without dates | Manifest dates set by hand; `UNKNOWN` temporal status handled explicitly |
