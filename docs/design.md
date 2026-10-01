@@ -535,7 +535,7 @@ README (CPU profile, restore route), and answer the four §37 demo questions.
 
 ## 9. Phases
 
-Ordered; each phase ends when its exit check passes. Deliverables D1–D9 are from §34.
+Ordered; each phase ends when its exit check passes. Deliverables D1–D9 are from §34. The schedule with dates and dependencies is in `gantt.md`.
 
 | # | Phase | Output | Exit check |
 |---|---|---|---|
