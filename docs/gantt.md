@@ -15,12 +15,12 @@ gantt
 
     section Deliverables
     D1 Literature and requirement analysis   :d1, 2024-01-15, 14d
-    D2 Dataset and benchmark                 :d2, 2024-01-22, 21d
-    D3 Baseline RAG                          :d3, 2024-01-15, 21d
-    D4 Consistency analysis module           :d4, 2024-01-29, 21d
-    D5 Conflict resolution module            :d5, 2024-02-12, 21d
-    D6 User interface                        :d6, 2024-02-19, 21d
-    D7 Evaluation framework                  :d7, 2024-02-26, 21d
+    D2 Dataset and benchmark                 :d2, 2024-01-22, 14d
+    D3 Baseline RAG                          :d3, 2024-01-29, 14d
+    D4 Consistency analysis module           :d4, 2024-02-05, 14d
+    D5 Conflict resolution module            :d5, 2024-02-12, 14d
+    D6 User interface                        :d6, 2024-02-19, 7d
+    D7 Evaluation framework                  :d7, 2024-02-26, 7d
     D8 Deployment                            :d8, 2024-03-04, 14d
     D9 Final technical report                :d9, 2024-01-22, 56d
     Project complete                         :milestone, fin, 2024-03-18, 0d
@@ -32,12 +32,12 @@ gantt
 | Deliverable | Weeks |
 |---|---|
 | D1 Literature and requirement analysis | 3–4 |
-| D2 Dataset and benchmark | 4–6 |
-| D3 Baseline RAG | 3–5 |
-| D4 Consistency analysis module | 5–7 |
-| D5 Conflict resolution module | 7–9 |
-| D6 User interface | 8–10 |
-| D7 Evaluation framework | 9–11 |
+| D2 Dataset and benchmark | 4–5 |
+| D3 Baseline RAG | 5–6 |
+| D4 Consistency analysis module | 6–7 |
+| D5 Conflict resolution module | 7–8 |
+| D6 User interface | 8 |
+| D7 Evaluation framework | 9 |
 | D8 Deployment | 10–11 |
 | D9 Final technical report | 4–11 |
 | Presentation | 12 |
