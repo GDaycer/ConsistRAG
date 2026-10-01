@@ -11,10 +11,12 @@ new module. The decisions below are fixed; do not change them without asking.
 - **Scope:** full target system (spec §32). No stretch goals (§38).
 - **Language:** English only.
 - **Domain:** Erasmus+ programme rules (real corpus R) + synthetic "Northbridge University" corpus S with injected
-  conflicts. *Erasmus+ still to be confirmed by the user; backup is versioned software docs.*
+  conflicts.
 - **LLM:** local only, via Ollama, 7–8B instruct at 4-bit (generator Qwen2.5-7B-Instruct). No paid APIs. The judge is a
   different model family from the generator. All LLM calls go through the OpenAI-compatible client in `consistrag/llm/`.
-- **Hardware:** everything must run on an RTX 4060 (8 GB) + Ryzen 5 5600. One LLM loaded at a time.
+- **Hardware:** development and experiments on an RTX 4060 (8 GB) + Ryzen 5 5600, one LLM loaded at a time. The
+  distributed program must also run on Windows PCs **without an NVIDIA GPU** via the CPU profile (3B model, NLI base,
+  no LLM step in the cascade). Profiles are config values; the code path is the same.
 - **No RAG frameworks:** no LangChain, LlamaIndex or Haystack. Own pipeline code on sentence-transformers,
   transformers, bm25s, pgvector, pydantic.
 - **Storage:** PostgreSQL + pgvector for documents, chunks, claims, graph data and evaluation runs.
@@ -25,7 +27,10 @@ new module. The decisions below are fixed; do not change them without asking.
   tuned on dev only; the test split is used only for final runs.
 - **Confidence:** consistency score and calibrated answer confidence are separate numbers. LLM token probabilities are
   not used as confidence.
-- **Backend/frontend/deploy:** FastAPI, Next.js, Docker Compose.
+- **Backend/frontend:** FastAPI, Next.js.
+- **Deployment:** Docker Compose on Windows (Docker Desktop + WSL2); `start.bat` (CPU) and `start-gpu.bat`. A prebuilt
+  index (DB dump) is shipped as a GitHub Release; distribution machines never run ingestion. The goal is a working
+  program on ~20 machines from the README alone; outputs may differ slightly between machines.
 - **Ground truth:** every test item carries an evidence pointer and is verified by the team (`verified_by`).
 
 ## Structure
@@ -45,13 +50,17 @@ evaluation use. Each baseline, variant and ablation is one file in `configs/`.
 
 ## Build order
 
-0. Skeleton: layout, Docker Compose, CI.
-1. Literature notes, conflict taxonomy, benchmark schema, corpus manifest, synthetic generator.
-2. Baseline RAG (B1, B2).
-3. Claim extraction + its evaluation.
-4. Contradiction detection; compare NLI / LLM / hybrid.
-5. Temporal analysis, consistency graph, source scoring.
-6. Resolution, abstention, generation with citation check, confidence.
-7. API + UI.
-8. Full evaluation, ablations, robustness, error analysis, Docker deployment.
-9. Report.
+See `docs/design.md` §9 (phases, exit checks) and §9.1 (deliverable traceability).
+
+0. Skeleton: layout, Docker Compose, start scripts, CI.
+1. Literature review and requirements (D1).
+2. Baseline RAG + evaluation runner (D3).
+3. Benchmark, team-verified (D2).
+4. Claim extraction.
+5. Contradiction detection; compare NLI / LLM / hybrid.
+6. Temporal analysis, consistency graph, source scoring, conflict types (D4).
+7. Resolution, abstention, generation with citation check, confidence (D5).
+8. API + UI (D6).
+9. Full evaluation, ablations, robustness, error analysis (D7).
+10. Deployment: prebuilt index release, README, acceptance test on a non-NVIDIA Windows PC (D8).
+11. Report (D9).
